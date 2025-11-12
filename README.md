@@ -1,8 +1,3 @@
-Chào bạn, đây là một file README.md hoàn chỉnh cho dự án TheUniqueKaz/Mqtt-simple của bạn, dựa trên toàn bộ quá trình chúng ta đã xây dựng và gỡ lỗi.
-
-Chỉ cần sao chép, dán nội dung dưới đây vào file README.md trong thư mục gốc của dự án là xong.
-
-(Nội dung file README.md bắt đầu từ đây)
 
 Mqtt-simple
 Một dự án Spring Boot đơn giản để demo cách kết nối, lắng nghe (subscribe) và xử lý tin nhắn từ một MQTT Broker.
