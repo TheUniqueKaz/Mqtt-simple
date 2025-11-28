@@ -15,26 +15,19 @@ public class TelemetryMapper {
     public TelemetryData toEntity(String topic, BasePayload payload) {
         TelemetryData dbEntry = new TelemetryData();
 
-
         String[] parts = topic.split("/");
 
         if (parts.length >= 3) {
             dbEntry.setDeviceId(parts[1]);
-
-
             String typeCode = parts[2];
             if ("s".equals(typeCode)) dbEntry.setDataType("sensor");
             else if ("m".equals(typeCode)) dbEntry.setDataType("message");
             else dbEntry.setDataType("unknown");
         } else {
-
             dbEntry.setDeviceId("unknown_device");
             dbEntry.setDataType("unknown");
         }
-
         dbEntry.setTopic(topic);
-
-
         Map<String, Object> map = new HashMap<>();
 
         if (payload instanceof SensorPayload) {
@@ -58,7 +51,6 @@ public class TelemetryMapper {
                 map.put("level", p.getLevel());
             }
         }
-
         dbEntry.setPayload(map);
 
         return dbEntry;

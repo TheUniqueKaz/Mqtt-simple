@@ -61,52 +61,59 @@ public class MqttFlowHandler {
     @Bean
     public MessageHandler mqttMessageHandler() {
         return (Message<?> message) -> {
+            // 1. Lấy thông tin Header và Payload
             String topic = (String) message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC);
             String rawJson = (String) message.getPayload();
 
             try {
-
+                // 2. Phân tích Topic: u/{deviceId}/{type}
                 String[] parts = topic.split("/");
 
-
                 if (parts.length < 3) {
-                    logger.warn("Topic không đúng chuẩn: {}", topic);
+                    logger.warn("Topic sai định dạng: {}", topic);
                     return;
                 }
 
                 String deviceId = parts[1];
-                String typeCode = parts[2];
-
+                String typeCode = parts[2]; // 's', 'm', hoặc 'control'
 
                 BasePayload payloadObj = null;
                 String fullType = "UNKNOWN";
 
+                // 3. Phân loại và Parse JSON
                 if ("s".equals(typeCode)) {
-
+                    // Mapping JSON {"n":"t", "v":30} vào SensorPayload
                     payloadObj = objectMapper.readValue(rawJson, SensorPayload.class);
                     fullType = "sensor";
                 }
                 else if ("m".equals(typeCode)) {
-
                     payloadObj = objectMapper.readValue(rawJson, MessagePayload.class);
                     fullType = "message";
-                } else {
-                    logger.warn("Loại dữ liệu lạ: {}", typeCode);
+                }
+                else if ("control".equals(typeCode)) {
+                    // Nếu là tin nhắn điều khiển (Backend gửi đi), thường ta bỏ qua
+                    // hoặc nếu muốn lưu log thì xử lý ở đây.
+                    logger.debug("Bỏ qua tin nhắn điều khiển: {}", rawJson);
+                    return;
+                }
+                else {
+                    logger.warn("Loại dữ liệu lạ (typeCode={}): {}", typeCode, topic);
                     return;
                 }
 
-
+                // 4. Chuyển sang Entity Database (Dùng Mapper bạn đã viết)
                 TelemetryData dbEntry = telemetryMapper.toEntity(topic, payloadObj);
 
-
+                // 5. LƯU VÀO POSTGRESQL
                 telemetryRepository.save(dbEntry);
-                logger.info(">> OK: Dev={} | Type={} | Data={}", deviceId, fullType, rawJson);
+
+                logger.info(">> ĐÃ LƯU DB: Dev={} | Type={} | ID={}", deviceId, fullType, dbEntry.getId());
 
                 processBusinessLogic(dbEntry);
 
             } catch (Exception e) {
-                logger.error("Lỗi xử lý: {}", e.getMessage());
-                e.printStackTrace();
+                logger.error("Lỗi xử lý tin nhắn MQTT: {} | Data: {}", e.getMessage(), rawJson);
+
             }
         };
     }

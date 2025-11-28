@@ -27,19 +27,16 @@ public class TelemetryData {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(nullable = false)
     private String deviceId;
+
     @Column(name = "data_type")
     private String dataType;
 
     private String topic;
-
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> payload;
-
 
     private LocalDateTime createdAt;
 
